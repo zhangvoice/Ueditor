@@ -1,6 +1,7 @@
 {
     "name": "zhangvoice/ueditor",
     "description": "this is a Ueditor",
+    "homepage": "https://github.com/zhangvoice/Ueditor",
     "type": "library",
     "license": "Apache-2.0",
     "authors": [
