@@ -3,7 +3,7 @@
     "description": "this is a Ueditor",
     "homepage": "https://github.com/zhangvoice/Ueditor",
     "license": "Apache-2.0",
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "version": "1.0.1",
     "authors": [
         {
