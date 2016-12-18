@@ -1,22 +1,3 @@
 {
-    "name": "zhangvoice/ueditor",
-    "description": "this is a Ueditor",
-    "type": "library",
-    "license": "Apache-2.0",
-    "zhangvoice":"dev-master",
-    "version": "1.0.1",
-    "authors": [
-        {
-            "name": "zhangvoice",
-            "email": "294097329@qq.com"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "think\\ueditor\\": "src/"
-        }
-    }
+    "zhangvoice":"dev-master"
 }
