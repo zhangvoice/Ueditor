@@ -2,8 +2,7 @@
     "name": "zhangvoice/ueditor",
     "description": "this is a Ueditor",
     "type": "library",
-    "license": "Apache-2.0",
-    "zhangvoice":"dev-master",
+    "license": "MIT",
     "version": "1.0.1",
     "authors": [
         {
