@@ -1,9 +1,8 @@
 {
     "name": "zhangvoice/ueditor",
     "description": "this is a Ueditor",
-    "homepage": "https://github.com/zhangvoice/Ueditor",
+    "type": "library",
     "license": "Apache-2.0",
-    "minimum-stability": "stable",
     "version": "1.0.1",
     "authors": [
         {
@@ -11,9 +10,6 @@
             "email": "294097329@qq.com"
         }
     ],
-    "support": {
-        "issues": "https://github.com/zhangvoice/Ueditor/issues"
-    },
     "require": {
         "php": ">=5.4.0"
     },
