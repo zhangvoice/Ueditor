@@ -34,7 +34,7 @@ public function ueditor()
 <script>
     $(function(){
         var ue = UE.getEditor('container',{
-            serverUrl :'{:U('模块/控制器/ueditor')}'
+            serverUrl :'{:url('模块/控制器/ueditor')}'
         });
     })
 </script>
