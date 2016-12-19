@@ -30,6 +30,7 @@ public function ueditor()
 ```
 ## 视图
 
+```
 <script>
     $(function(){
         var ue = UE.getEditor('container',{
@@ -37,6 +38,7 @@ public function ueditor()
         });
     })
 </script>
+```
 
 ## 上传目录
 
