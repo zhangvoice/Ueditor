@@ -28,6 +28,15 @@ public function ueditor()
     echo $data->output();
 }
 ```
+## 视图
+
+<script>
+    $(function(){
+        var ue = UE.getEditor('container',{
+            serverUrl :'{:U('模块/控制器/ueditor')}'
+        });
+    })
+</script>
 
 ## 上传目录
 
