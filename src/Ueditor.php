@@ -6,21 +6,14 @@
 namespace think\ueditor;
 class Ueditor{
 	
-	//public $uid;//要操作的用户id 如有登录需要则去掉注释
-	
 	private $output;//要输出的数据
 	
-	private $st;
+	private $rootpath = '/uploads/ueditor';//上传地址
 	
-	private $rootpath = '/Uploads';
-	
-	public function __construct($uid = ''){
-		//uid 为空则导入当前会话uid
-		//if(''===$uid) $this->uid = session('uid');
-		
-		\Vin\FileStorage::connect(STORAGE_TYPE);
+	public function __construct(){
+
 		//导入设置
-		$CONFIG = json_decode(preg_replace("/\/\*[\s\S]+?\*\//", "", file_get_contents(CONF_PATH."ueditor.json")), true);
+		$CONFIG = json_decode(preg_replace("/\/\*[\s\S]+?\*\//", "", file_get_contents(dirname(__FILE__)."/config.json")), true);
 		
 		$action = htmlspecialchars($_GET['action']);
 		
@@ -31,9 +24,9 @@ class Ueditor{
 		        
 		    case 'uploadimage':
 				$config = array(
-		            "pathFormat" => $CONFIG['imagePathFormat'],
+		            "pathFormat" => $this->rootpath . "/image",
 		            "maxSize" => $CONFIG['imageMaxSize'],
-		            "allowFiles" => $CONFIG['imageAllowFiles']
+		            "allowFiles" => $CONFIG['extimg']
 				);
 				$fieldName = $CONFIG['imageFieldName'];
 				$result = $this->uploadFile($config, $fieldName);
@@ -41,9 +34,8 @@ class Ueditor{
 				
 			case 'uploadscrawl':
 				$config = array(
-		            "pathFormat" => $CONFIG['scrawlPathFormat'],
+		            "pathFormat" => $this->rootpath . "/crawl",
 		            "maxSize" => $CONFIG['scrawlMaxSize'],
-		            "allowFiles" => $CONFIG['scrawlAllowFiles'],
 		            "oriName" => "scrawl.png"
 		            );
 		            $fieldName = $CONFIG['scrawlFieldName'];
@@ -52,9 +44,9 @@ class Ueditor{
 		            
 		    case 'uploadvideo':
 				$config = array(
-		            "pathFormat" => $CONFIG['videoPathFormat'],
+		            "pathFormat" => $this->rootpath . "/video",
 		            "maxSize" => $CONFIG['videoMaxSize'],
-		            "allowFiles" => $CONFIG['videoAllowFiles']
+		            "allowFiles" => $CONFIG['extvideo']
 				);
 				$fieldName = $CONFIG['videoFieldName'];
 				$result=$this->uploadFile($config, $fieldName);
@@ -63,9 +55,9 @@ class Ueditor{
 			case 'uploadfile':
 				// default:
 				$config = array(
-		            "pathFormat" => $CONFIG['filePathFormat'],
+		            "pathFormat" => $this->rootpath . "/file",
 		            "maxSize" => $CONFIG['fileMaxSize'],
-		            "allowFiles" => $CONFIG['fileAllowFiles']
+		            "allowFiles" => $CONFIG['extfile']
 				);
 				$fieldName = $CONFIG['fileFieldName'];
 				$result=$this->uploadFile($config, $fieldName);
@@ -75,7 +67,7 @@ class Ueditor{
 				$config=array(
 					'allowFiles' => $CONFIG['fileManagerAllowFiles'],
 					'listSize' => $CONFIG['fileManagerListSize'],
-					'path' => $CONFIG['fileManagerListPath'],
+					'path' => $this->rootpath . "/file",
 				);
 				$result = $this->listFile($config);
 				break;
@@ -84,22 +76,11 @@ class Ueditor{
 				$config=array(
 					'allowFiles' => $CONFIG['imageManagerAllowFiles'],
 					'listSize' => $CONFIG['imageManagerListSize'],
-					'path' => $CONFIG['imageManagerListPath'],
+					'path' => $this->rootpath . "/image",
 				);
 				$result = $this->listFile($config);
 				break;
-			
-			case 'catchimage':
-				$config = array(
-					"pathFormat" => $CONFIG['catcherPathFormat'],
-				    "maxSize" => $CONFIG['catcherMaxSize'],
-				    "allowFiles" => $CONFIG['catcherAllowFiles'],
-				    "oriName" => "remote.png"
-				);
-				$fieldName = $CONFIG['catcherFieldName'];
-				$result = $this->saveRemote($config , $fieldName);
-				break;
-				
+	
 			default:
 		        $result = json_encode(array(
 		            'state'=> 'wrong require'
@@ -137,31 +118,24 @@ class Ueditor{
 	 * 
 	 */
 	private function uploadFile($config,$fieldName){
-		
-		
-		$upload = new \Think\Upload();
-		$upload->maxSize   =     $config['maxSize'] ;// 设置附件上传大小
-		$upload->exts      =     $this->format_exts($config['allowFiles']);// 设置附件上传类型
-		$upload->rootPath  =     '.'.$this->rootpath; // 设置附件上传根目录
-		$upload->autoSub = false;
-		$upload->savePath  =     $this->getFullPath($config['pathFormat']); // 设置附件上传（子）目录
-		$info=$upload->uploadOne($_FILES[$fieldName]);
-		$rootpath = $this->rootpath;
-		
-		if(!$info){
+		p($config);die;
+		$file = request()->file('upfile');
+		$info = $file->validate($config['allowFiles'])->move(ROOT_PATH . 'public' . $config['pathFormat']);
+		if($info){
 			$data = array(
-				"state"=>$upload -> getError(),
+				'state'=>	"SUCCESS",
+				'url'=>		url('/') . $config['pathFormat'] . '/' . $info->getSaveName(),
+				'title'=>	$info->getFilename(),
+				'original'=>$info->getFilename(),
+				'type'=>	$file->getType(),
+				'size'=>	$file->getSize(),
 			);
+
 		}else{
 			$data = array(
-				'state'=>"SUCCESS",
-				'url'=>\Vin\FileStorage::getPath($rootpath,$info['savepath'].$info['savename']),
-				'title'=>$info['savename'],
-				'original'=>$info['name'],
-				'type'=>'.' . $info['ext'],
-				'size'=>$info['size'],
+				"state"=>	$file->getError()
 			);
-		}
+    	}
 		return json_encode($data);
 	}
 	
@@ -173,24 +147,26 @@ class Ueditor{
 		$data = array();
 		
 		$base64Data = $_POST[$fieldName];
+
         $img = base64_decode($base64Data);
         $path = $this->getFullPath($config['pathFormat']);
-        
+
         if(strlen($img)>$config['maxSize']){
         	$data['states'] = 'too large';
         	return json_encode($data);
         }
         
         $rootpath = $this->rootpath;
-        
+        // p($path);
         //替换随机字符串
         $imgname = uniqid().'.png';
-        $filename = $path.$imgname;
-        
-        if(\Vin\FileStorage::put($rootpath,$filename,$img)){
-        	$data=array(
+        $filename = $path."/".$imgname;
+        $this->createDir(ROOT_PATH ."public".$path);
+        $flg = file_put_contents('.'.$filename,$img);
+		if($flg){
+			$data=array(
         		'state'=>'SUCCESS',
-        		'url'=>\Vin\FileStorage::getPath($rootpath,$filename),
+        		'url'=>url('/') . $filename,
         		'title'=>$imgname,
         		'original'=>'scrawl.png',
         		'type'=>'.png',
@@ -198,7 +174,7 @@ class Ueditor{
         	
         	);
         }else{
-        	$data=array(
+			$data=array(
         		'state'=>'cant write',
         	);
         }
@@ -206,9 +182,21 @@ class Ueditor{
 	}
 	
 	/**
+	 * 循环检测目录是否存在，并创建目录
+	 */
+	private function createDir($path){
+	    if (!file_exists($path)){
+	        $this->createDir(dirname($path));
+	        mkdir($path, 0777);
+	    }
+	}
+
+	/**
 	 * 列出文件夹下所有文件，如果是目录则向下
 	 */
 	private function listFile($config){
+
+		// p($config);
 		$allowFiles = substr(str_replace(".", "|", join("", $config['allowFiles'])), 1);
 		$size = isset($_GET['size']) ? htmlspecialchars($_GET['size']) : $config['listSize'];
 		$start = isset($_GET['start']) ? htmlspecialchars($_GET['start']) : 0;
@@ -216,9 +204,10 @@ class Ueditor{
 		
 		$rootpath = $this->rootpath;
 		
-		$path = $config['path'];
-		$files = \Vin\FileStorage::listFile($rootpath,$path, $allowFiles);
-		//return $files;
+		$path = $_SERVER['DOCUMENT_ROOT'] . url('/') . $config['path'];
+
+		$files = $this->getfiles($path, $allowFiles);
+
 		if (!count($files)) {
 		    return json_encode(array(
 		        "state" => "no match file",
@@ -250,80 +239,6 @@ class Ueditor{
 	}
 	
 	/**
-	 * 
-	 * Enter description here ...
-	 */
-	private function saveRemote($config , $fieldName){
-		$list = array();
-		if (isset($_POST[$fieldName])) {
-		    $source = $_POST[$fieldName];
-		} else {
-		    $source = $_GET[$fieldName];
-		}
-		foreach ($source as $imgUrl) {
-		    $upload = new \Think\Upload();
-		    
-			$imgUrl = htmlspecialchars($imgUrl);
-	        $imgUrl = str_replace("&amp;", "&", $imgUrl);
-	
-	        //http开头验证
-	        if (strpos($imgUrl, "http") !== 0) {
-	            $data = array('state'=>'不是http链接');
-	            return json_encode($data);
-	        }
-	        //格式验证(扩展名验证和Content-Type验证)
-	        $fileType = strtolower(strrchr($imgUrl, '.'));
-	        if (!in_array($fileType, $config['allowFiles']) || stristr($heads['Content-Type'], "image")) {
-	            $data = array("state"=>"错误文件格式");
-	            return json_encode($data);
-	        }
-	        
-	         //打开输出缓冲区并获取远程图片
-	        ob_start();
-	        $context = stream_context_create(
-	            array('http' => array(
-	                'follow_location' => false // don't follow redirects
-	            ))
-	        );
-	        readfile($imgUrl, false, $context);
-	        $img = ob_get_contents();
-	        ob_end_clean();
-	        preg_match("/[\/]([^\/]*)[\.]?[^\.\/]*$/", $imgUrl, $m);
-	        
-	        $path = $this->getFullPath($config['pathFormat']);
-			if(strlen($img)>$config['maxSize']){
-	        	$data['states'] = 'too large';
-	        	return json_encode($data);
-	        }
-	        
-	        $rootpath = $this->rootpath;
-	        
-	        $imgname = uniqid().'.png';
-	        $filename = $path.$imgname;
-	        
-	        $oriName = $m ? $m[1]:"";
-		    
-        	if(\Vin\FileStorage::put($rootpath,$filename,$img)){
-			    array_push($list, array(
-			        "state" => 'SUCCESS',
-			        "url" => \vin\FileStorage::getPath($rootpath,$filename),
-			        "size" => strlen($img),
-			        "title" => $imgname,
-			        "original" => $oriName,
-			        "source" => htmlspecialchars($imgUrl)
-			    ));
-        	}else{
-        		array_push($list,array('state'=>'文件写入失败'));
-        	}
-		}
-		
-		/* 返回抓取数据 */
-		return json_encode(array(
-		    'state'=> count($list) ? 'SUCCESS':'ERROR',
-		    'list'=> $list
-		));
-	}
-	/**
      * 规则替换命名文件
      * @param $path
      * @return string
@@ -341,17 +256,37 @@ class Ueditor{
         $format = str_replace("{hh}", $d[4], $format);
         $format = str_replace("{ii}", $d[5], $format);
         $format = str_replace("{ss}", $d[6], $format);
-        $format = str_replace("{uid}", $this->uid, $format);
         
         return $format;
     }
     
-	private function format_exts($exts){
-		$data=array();
-		foreach ($exts as $key => $value) {
-			$data[]=ltrim($value,'.');
-		}
-		return $data;
+	/**
+	 * 遍历获取目录下的指定类型的文件
+	 * @param $path
+	 * @param array $files
+	 * @return array
+	 */
+	private function getfiles($path, $allowFiles, &$files = array())
+	{
+	    if (!is_dir($path)) return null;
+	    if(substr($path, strlen($path) - 1) != '/') $path .= '/';
+	    $handle = opendir($path);
+	    while (false !== ($file = readdir($handle))) {
+	        if ($file != '.' && $file != '..') {
+	            $path2 = $path . $file;
+	            if (is_dir($path2)) {
+	                $this->getfiles($path2, $allowFiles, $files);
+	            } else {
+	                if (preg_match("/\.(".$allowFiles.")$/i", $file)) {
+	                    $files[] = array(
+	                        'url'=> substr($path2, strlen($_SERVER['DOCUMENT_ROOT'])),
+	                        'mtime'=> filemtime($path2)
+	                    );
+	                }
+	            }
+	        }
+	    }
+	    return $files;
 	}
 	
 }
