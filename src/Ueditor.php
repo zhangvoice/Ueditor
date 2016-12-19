@@ -118,7 +118,6 @@ class Ueditor{
 	 * 
 	 */
 	private function uploadFile($config,$fieldName){
-		p($config);die;
 		$file = request()->file('upfile');
 		$info = $file->validate($config['allowFiles'])->move(ROOT_PATH . 'public' . $config['pathFormat']);
 		if($info){
