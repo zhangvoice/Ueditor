@@ -45,3 +45,15 @@ public function ueditor()
 默认上传至 public/uploads/ueditor 请确认目录存在。
 
 目前仅支持TP5,不支持SAE平台。
+
+## ueditor.zip
+
+ueditor 1.4.3.3 版本 ,解压拷贝至静态资源存放目录
+
+```
+
+<script src="{:url('/')}static/ueditor/ueditor.config.js"></script>
+<script src="{:url('/')}static/ueditor/ueditor.all.min.js"></script>
+<script src="{:url('/')}static/ueditor/lang/zh-cn/zh-cn.js"></script>
+
+```
