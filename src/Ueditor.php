@@ -123,7 +123,7 @@ class Ueditor{
 		if($info){
 			$data = array(
 				'state'=>	"SUCCESS",
-				'url'=>		url('/') . $config['pathFormat'] . '/' . $info->getSaveName(),
+				'url'=>		url('/') . substr($config['pathFormat'],1) . '/' . $info->getSaveName(),
 				'title'=>	$info->getFilename(),
 				'original'=>$info->getFilename(),
 				'type'=>	$file->getType(),
@@ -203,7 +203,7 @@ class Ueditor{
 		
 		$rootpath = $this->rootpath;
 		
-		$path = $_SERVER['DOCUMENT_ROOT'] . url('/') . $config['path'];
+		$path = $_SERVER['DOCUMENT_ROOT'] . url('/') . substr($config['path'],1);
 
 		$files = $this->getfiles($path, $allowFiles);
 
