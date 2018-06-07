@@ -1,3 +1,5 @@
+停止维护，请慎用。
+
 # Ueditor
 this is a ueditor
 
